@@ -24,8 +24,8 @@ const FormSchema = z.object({
     .optional(),
   email: z
     .string()
-    .regex(/^[a-z]+@[a-z]+(.com.br|.com)$/, {
-      message: 'Regex: ^[a-z]+@[a-z]+(.com.br|.com)$',
+    .regex(/^[a-z]+@[a-z]+(.com.br|.br)$/, {
+      message: 'Regex: ^[a-z]+@[a-z]+(.com.br|.br)$',
     })
     .optional(),
   senha: z
