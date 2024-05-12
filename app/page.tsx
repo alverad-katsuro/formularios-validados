@@ -12,10 +12,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-const FormSchema = z.object({
+const defaultValidation = z.object({
   nome: z
     .string()
     .regex(/^[A-Z][a-z]+(\s[A-Z][a-z]+)*\s[A-Z][a-z]+$/, {
@@ -64,9 +65,13 @@ const FormSchema = z.object({
     .optional(),
   q2a: z
     .string()
-    .regex(/^(HM|MH)((mmm*|h+)|((?=.*m)(?=.*h.*h)(?!.*m.*m)[hm]*))$/, {
-      message: 'Regex: ^(HM|MH)((mmm*|h+)|((?=.*m)(?=.*h.*h)(?!.*m.*m)[hm]*))$',
-    })
+    .regex(
+      /^(HM|MH)((m*h*(m+h*m+)+h*m*)+|[hm]*h[hm]*|(?=.*h.*h)(?=.*m)[hm]*)$/,
+      {
+        message:
+          'Regex: ^(HM|MH)((m*h*(m+h*m+)+h*m*)+|[hm]*h[hm]*|(?=.*h.*h)(?=.*m)[hm]*)$',
+      },
+    )
     .optional(),
   q2b: z
     .string()
@@ -88,14 +93,14 @@ const FormSchema = z.object({
     .optional(),
   q2e: z
     .string()
-    .regex(/^(MM|HH)(m((hm)*h|(hm)+)|h((mh)*m|(mh)+))$/, {
-      message: 'Regex: ^(MM|HH)(m((hm)*h|(hm)+)|h((mh)*m|(mh)+))$',
+    .regex(/^(MM|HH)(m((hm)*h|(hm)+)|h((mh)*m|(mh)+)|h|m)$/, {
+      message: 'Regex: ^(MM|HH)(m((hm)*h|(hm)+)|h((mh)*m|(mh)+)|h|m)$',
     })
     .optional(),
   q2f: z
     .string()
-    .regex(/^(MM|HH)(m|hm)*h?$/, {
-      message: 'Regex: ^(MM|HH)(m|hm)*h?$',
+    .regex(/^(MM|HH)(m|hm)+h?$/, {
+      message: 'Regex: ^(MM|HH)(m|hm)+h?$',
     })
     .optional(),
   q2g: z
@@ -107,12 +112,19 @@ const FormSchema = z.object({
 })
 
 export default function Home() {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const [bet, setBet] = useState<{ ini: number; fim: number }>({
+    ini: 1,
+    fim: 3,
+  })
+
+  const [formSchema, setFormSchema] = useState(defaultValidation)
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     mode: 'onChange',
   })
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  function onSubmit(data: z.infer<typeof formSchema>) {
     toast({
       title: 'You submitted the following values:',
       description: (
@@ -122,6 +134,105 @@ export default function Home() {
       ),
     })
   }
+
+  useEffect(() => {
+    setFormSchema(
+      z.object({
+        nome: z
+          .string()
+          .regex(/^[A-Z][a-z]+(\s[A-Z][a-z]+)*\s[A-Z][a-z]+$/, {
+            message: 'Regex: ^[A-Z][a-z]+(\\s[A-Z][a-z]+)*\\s[A-Z][a-z]+$',
+          })
+          .optional(),
+        email: z
+          .string()
+          .regex(/^[a-z]+@[a-z]+(.com.br|.br)$/, {
+            message: 'Regex: ^[a-z]+@[a-z]+(.com.br|.br)$',
+          })
+          .optional(),
+        senha: z
+          .string()
+          .regex(/^(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8}$/, {
+            message: 'Regex: ^(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8}$',
+          })
+          .optional(),
+        cpf: z
+          .string()
+          .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, {
+            message: 'Regex: ^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$',
+          })
+          .optional(),
+        telefone: z
+          .string()
+          .regex(
+            /^(\(\d{2}\) 9\d{4}-\d{4}|\(\d{2}\) 9\d{4}\d{4}|\d{2} 9\d{4}\d{4})$/,
+            {
+              message:
+                'Regex: ^(\\(\\d{2}\\) 9\\d{4}-\\d{4}|\\(\\d{2}\\) 9\\d{4}\\d{4}|\\d{2} 9\\d{4}\\d{4})$',
+            },
+          )
+          .optional(),
+        dataHora: z
+          .string()
+          .regex(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/, {
+            message: 'Regex: ^\\d{2}\\/\\d{2}\\/\\d{4} \\d{2}:\\d{2}:\\d{2}$',
+          })
+          .optional(),
+        numero: z
+          .string()
+          .regex(/^(\+|-|)\d+(\.\d+)?$/, {
+            message: 'Regex: ^(\\+|-|)\\d+(\\.\\d+)?$',
+          })
+          .optional(),
+        q2a: z
+          .string()
+          .regex(
+            /^(HM|MH)((m*h*(m+h*m+)+h*m*)+|[hm]*h[hm]*|(?=.*h.*h)(?=.*m)[hm]*)$/,
+            {
+              message:
+                'Regex: ^(HM|MH)((m*h*(m+h*m+)+h*m*)+|[hm]*h[hm]*|(?=.*h.*h)(?=.*m)[hm]*)$',
+            },
+          )
+          .optional(),
+        q2b: z
+          .string()
+          .regex(/^(HM|MH)h*m(h*mh*mh*)*$/, {
+            message: 'Regex: ^(HM|MH)h*m(h*mh*mh*)*$',
+          })
+          .optional(),
+        q2c: z
+          .string()
+          .regex(/^(HM|MH)m[hm]*h$/, {
+            message: 'Regex: ^(HM|MH)m[hm]*h$',
+          })
+          .optional(),
+        q2d: z
+          .string()
+          .regex(/^(MM|HH)(hm|mh)[hm]*(hm|mh|mm|hh)+[hm]*(hm|mh)$/, {
+            message: 'Regex: ^(MM|HH)(hm|mh)[hm]*(hm|mh|mm|hh)+[hm]*(hm|mh)$',
+          })
+          .optional(),
+        q2e: z
+          .string()
+          .regex(/^(MM|HH)(m((hm)*h|(hm)+)|h((mh)*m|(mh)+)|h|m)$/, {
+            message: 'Regex: ^(MM|HH)(m((hm)*h|(hm)+)|h((mh)*m|(mh)+)|h|m)$',
+          })
+          .optional(),
+        q2f: z
+          .string()
+          .regex(/^(MM|HH)(m|hm)+h?$/, {
+            message: 'Regex: ^(MM|HH)(m|hm)+h?$',
+          })
+          .optional(),
+        q2g: z
+          .string()
+          .regex(new RegExp(`^([HM]{${bet.ini},${bet.fim}})[hm]*$(?<!hhh$)`), {
+            message: `Regex: ^([HM]{${bet.ini},${bet.fim}})[hm]*$(?<!hhh$)`,
+          })
+          .optional(),
+      }),
+    )
+  }, [bet])
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-4 p-24">
@@ -495,9 +606,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2a"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -515,9 +632,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2b"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -535,9 +658,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2c"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -556,9 +685,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2d"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -576,9 +711,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2e"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -597,9 +738,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2f"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -619,9 +766,15 @@ export default function Home() {
                 <FormField
                   control={form.control}
                   name="q2g"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormControl>
+                      <FormControl
+                        className={
+                          !fieldState.invalid
+                            ? 'border-green-600'
+                            : 'border-red-600'
+                        }
+                      >
                         <Input {...field} />
                       </FormControl>
                       <FormDescription>
@@ -631,6 +784,34 @@ export default function Home() {
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+
+                <input
+                  type="number"
+                  min={0}
+                  defaultValue={1}
+                  max={bet.fim}
+                  onChange={(e) => {
+                    setBet((old) => {
+                      return {
+                        ini: Number(e.target.value),
+                        fim: old.fim,
+                      }
+                    })
+                  }}
+                />
+                <input
+                  type="number"
+                  min={bet.ini}
+                  defaultValue={3}
+                  onChange={(e) => {
+                    setBet((old) => {
+                      return {
+                        fim: Number(e.target.value),
+                        ini: old.ini,
+                      }
+                    })
+                  }}
                 />
               </ol>
             </div>
